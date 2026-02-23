@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>absensi perpustakaan</title>
+
+<style>
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family:'Arial Black', sans-serif;
+}
+
+body{
+  height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  overflow:hidden;
+  transition:0.4s ease;
+}
+
+/* ================= LIGHT MODE ================= */
+body.light{
+  background:linear-gradient(180deg,#4facfe,#bfe9ff);
+  color:#0077ff;
+}
+
+/* ================= DARK MODE ================= */
+body.dark{
+  background:radial-gradient(circle at center,#1a0000,#000000 70%);
+  color:#ff4d4d;
+}
+
+/* ================= GALAXY ================= */
+#galaxy{
+  position:fixed;
+  inset:0;
+  z-index:0;
+}
+
+/* ================= CARD ================= */
+.card{
+  width:95%;
+  max-width:500px;
+  padding:45px 35px;
+  border-radius:30px;
+  text-align:center;
+  z-index:2;
+  backdrop-filter:blur(12px);
+  transition:0.4s ease;
+}
+
+body.light .card{
+  background:white;
+  box-shadow:0 20px 50px rgba(0,0,0,0.25);
+}
+
+body.dark .card{
+  background:rgba(20,0,0,0.85);
+  box-shadow:0 0 40px rgba(255,0,0,0.4);
+}
+
+h1{
+  font-size:26px;
+  margin-bottom:20px;
+}
+
+input{
+  width:100%;
+  padding:16px;
+  margin:12px 0;
+  border-radius:15px;
+  font-size:15px;
+  font-weight:bold;
+  border:3px solid;
+  outline:none;
+}
+
+body.light input{
+  border-color:#0077ff;
+}
+
+body.dark input{
+  border-color:#ff4d4d;
+  background:#111;
+  color:white;
+}
+
+/* ================= BUTTON ================= */
+button{
+  width:100%;
+  padding:14px;
+  margin-top:15px;
+  border:none;
+  border-radius:20px;
+  font-size:15px;
+  font-weight:bold;
+  cursor:pointer;
+  transition:0.2s;
+}
+
+body.light button{
+  background:#0077ff;
+  color:white;
+  box-shadow:0 5px 0 #005fcc;
+}
+
+body.dark button{
+  background:#ff1a1a;
+  color:white;
+  box-shadow:0 5px 0 #990000;
+}
+
+button:active{
+  transform:translateY(4px);
+}
+
+/* ================= TOGGLE ================= */
+.toggle{
+  position:absolute;
+  top:20px;
+  right:20px;
+  z-index:3;
+  padding:8px 16px;
+  border-radius:20px;
+  font-size:13px;
+}
+
+/* ================= SUCCESS ================= */
+.success{
+  position:fixed;
+  inset:0;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  font-size:24px;
+  font-weight:bold;
+  backdrop-filter:blur(12px);
+  opacity:0;
+  pointer-events:none;
+  transition:0.4s ease;
+  z-index:5;
+}
+
+body.light .success{
+  background:rgba(0,119,255,0.85);
+  color:white;
+}
+
+body.dark .success{
+  background:rgba(0,0,0,0.9);
+  color:#ff4d4d;
+}
+
+.success.show{
+  opacity:1;
+  pointer-events:auto;
+}
+
+/* ================= CONFETTI ================= */
+.confetti{
+  position:absolute;
+  width:8px;
+  height:8px;
+  top:-10px;
+  animation:fall linear forwards;
+}
+
+@keyframes fall{
+  to{
+    transform:translateY(110vh) rotate(720deg);
+  }
+}
+</style>
+</head>
+
+<body class="light">
+
+<canvas id="galaxy"></canvas>
+
+<button class="toggle" onclick="toggleMode()">🌙 dark</button>
+
+<div class="card">
+  <h1>absensi perpustakaan</h1>
+  <input type="text" id="nama" placeholder="nama">
+  <input type="text" id="kelas" placeholder="kelas">
+  <button onclick="submitAbsen()">submit</button>
+</div>
+
+<div class="success" id="successPage">
+  <div>🎉 anda berhasil absen!</div>
+  <button onclick="backToMenu()" style="margin-top:25px;">balik ke menu</button>
+</div>
+
+<script>
+
+/* ================= GALAXY ================= */
+const canvas=document.getElementById("galaxy");
+const ctx=canvas.getContext("2d");
+
+function resize(){
+  canvas.width=window.innerWidth;
+  canvas.height=window.innerHeight;
+}
+resize();
+window.addEventListener("resize",resize);
+
+let stars=[];
+for(let i=0;i<180;i++){
+  stars.push({
+    x:Math.random()*canvas.width,
+    y:Math.random()*canvas.height,
+    size:Math.random()*2,
+    speedX:(Math.random()-0.5)*0.4,
+    speedY:(Math.random()-0.5)*0.4
+  });
+}
+
+function animate(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.fillStyle="white";
+  stars.forEach(s=>{
+    ctx.fillRect(s.x,s.y,s.size,s.size);
+    s.x+=s.speedX;
+    s.y+=s.speedY;
+
+    if(s.x<0||s.x>canvas.width) s.speedX*=-1;
+    if(s.y<0||s.y>canvas.height) s.speedY*=-1;
+  });
+  requestAnimationFrame(animate);
+}
+animate();
+
+/* ================= MODE ================= */
+function toggleMode(){
+  const body=document.body;
+  const btn=document.querySelector(".toggle");
+
+  if(body.classList.contains("light")){
+    body.classList.replace("light","dark");
+    btn.textContent="☀️ light";
+  }else{
+    body.classList.replace("dark","light");
+    btn.textContent="🌙 dark";
+  }
+}
+
+/* ================= SUBMIT ================= */
+function submitAbsen(){
+  const nama=document.getElementById("nama").value.trim();
+  const kelas=document.getElementById("kelas").value.trim();
+
+  if(!nama||!kelas){
+    alert("isi dulu woi 😭");
+    return;
+  }
+
+  document.getElementById("successPage").classList.add("show");
+  startConfetti();
+}
+
+function backToMenu(){
+  document.getElementById("successPage").classList.remove("show");
+  document.getElementById("nama").value="";
+  document.getElementById("kelas").value="";
+}
+
+/* ================= CONFETTI ================= */
+function startConfetti(){
+  for(let i=0;i<60;i++){
+    const conf=document.createElement("div");
+    conf.className="confetti";
+    conf.style.left=Math.random()*100+"vw";
+    conf.style.background=randomColor();
+    conf.style.animationDuration=(Math.random()*2+2)+"s";
+    document.body.appendChild(conf);
+    setTimeout(()=>conf.remove(),4000);
+  }
+}
+
+function randomColor(){
+  const colors=["#ff4d6d","#ffd93d","#6bcBef","#ffffff","#00ffcc"];
+  return colors[Math.floor(Math.random()*colors.length)];
+}
+
+</script>
+
+</body>
+</html>
